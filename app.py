@@ -12,6 +12,40 @@ is misspelled, correct the word, and if a word does not exist take your best gue
 correct word. Only return the corrected text without commentary. [/INST]'''
 video_prompt = '[INST] Write a YouTube video title and video description for the following video script. [/INST]'
 
+# Model configurations
+models = {
+    'Llama2-7b-chat': {
+        'USER_ID': 'meta',
+        'APP_ID': 'Llama-2',
+        'MODEL_ID': 'Llama2-7b-chat',
+        'MODEL_VERSION_ID': 'e52af5d6bc22445aa7a6761f327f7129'
+    },
+    'Llama2-13b-chat': {
+        'USER_ID': 'meta',
+        'APP_ID': 'Llama-2',
+        'MODEL_ID': 'llama2-13b-chat',
+        'MODEL_VERSION_ID': '79a1af31aa8249a99602fc05687e8f40'
+    },
+    'Llama2-70b-chat': {
+        'USER_ID': 'meta',
+        'APP_ID': 'Llama-2',
+        'MODEL_ID': 'llama2-70b-chat',
+        'MODEL_VERSION_ID': '6c27e86364ba461d98de95cddc559cb3'
+    },
+    'GPT-3': {
+        'USER_ID': 'openai',
+        'APP_ID': 'chat-completion',
+        'MODEL_ID': 'GPT-3_5-turbo',
+        'MODEL_VERSION_ID': '8ea3880d08a74dc0b39500b99dfaa376'
+    },
+    'GPT-4': {
+        'USER_ID': 'openai',
+        'APP_ID': 'chat-completion',
+        'MODEL_ID': 'GPT-4',
+        'MODEL_VERSION_ID': 'ad16eda6ac054796bf9f348ab6733c72'
+    }
+}
+
 def filter_subtitles(subtitle_str):
     lines = subtitle_str.strip().split("\n")
     
@@ -81,22 +115,21 @@ def format_with_clarifai_api(raw_text, prompt):
             st.error("Failed to retrieve the Clarifai Personal Access Token!")
             PAT = None
 
-    USER_ID = 'meta'
-    APP_ID = 'Llama-2'
-    MODEL_ID = 'llama2-70b-chat'
-    MODEL_VERSION_ID = '6c27e86364ba461d98de95cddc559cb3'
-
     channel = ClarifaiChannel.get_grpc_channel()
     stub = service_pb2_grpc.V2Stub(channel)
 
     metadata = (('authorization', 'Key ' + PAT),)
-    userDataObject = resources_pb2.UserAppIDSet(user_id=USER_ID, app_id=APP_ID)
+
+    userDataObject = resources_pb2.UserAppIDSet(
+        user_id=selected_model['USER_ID'], 
+        app_id=selected_model['APP_ID']
+    )
 
     post_model_outputs_response = stub.PostModelOutputs(
         service_pb2.PostModelOutputsRequest(
             user_app_id=userDataObject,
-            model_id=MODEL_ID,
-            version_id=MODEL_VERSION_ID,
+            model_id=selected_model['MODEL_ID'],
+            version_id=selected_model['MODEL_VERSION_ID'],
             inputs=[
                 resources_pb2.Input(
                     data=resources_pb2.Data(
@@ -127,6 +160,10 @@ st.title("YouTube Script, Title, and Description Generator")
 
 # Input for YouTube URL or video ID
 url_or_id = st.text_input("Enter YouTube URL or Video ID:")
+
+# Add the model selection dropdown
+selected_model_name = st.selectbox("Select Model:", list(models.keys()))
+selected_model = models[selected_model_name]
 
 subtitles = None  # Initialize subtitles to None
 
