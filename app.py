@@ -32,6 +32,12 @@ models = {
         'MODEL_ID': 'llama2-70b-chat',
         'MODEL_VERSION_ID': '6c27e86364ba461d98de95cddc559cb3'
     },
+    'Llama2-70b-alternative': {
+        'USER_ID': 'clarifai',
+        'APP_ID': 'ml',
+        'MODEL_ID': 'llama2-70b-alternative',
+        'MODEL_VERSION_ID': '75a64576ad664768b828f1047acdae30'
+    },
     'GPT-3': {
         'USER_ID': 'openai',
         'APP_ID': 'chat-completion',
