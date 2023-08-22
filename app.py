@@ -177,31 +177,48 @@ This way, the steps of formatting the script for subtitles, the video title, and
 # Input for YouTube URL or video ID
 url_or_id = st.text_input("Enter YouTube URL or Video ID:")
 
+# Create containers for the video and subtitles to prevent their disappearance upon model change
+video_container = st.empty()
+subtitles_container = st.empty()
+
 # Add the model selection dropdown
 selected_model_name = st.selectbox("Select Model:", list(models.keys()))
 selected_model = models[selected_model_name]
 
-subtitles = None  # Initialize subtitles to None
+# Check if 'subtitles' exist in session_state, if not initialize it
+if 'subtitles' not in st.session_state:
+    st.session_state.subtitles = None
 
-# If URL or ID is provided, process it
-if url_or_id: 
+# If URL or ID is provided and subtitles haven't been fetched yet, process it
+if url_or_id and not st.session_state.subtitles:
     video_id = extract_video_id(url_or_id)
     youtube_url = f"https://www.youtube.com/watch?v={video_id}"  # Construct the full YouTube URL
-    # Display the YouTube video embedded on the page
-    st.video(youtube_url)
+    
+    # Display the YouTube video embedded on the page within the container
+    video_container.video(youtube_url)
 
     try:
-        subtitles = download_subtitles(video_id)
-        st.text_area("Subtitles:", value=subtitles, height=400)
+        st.session_state.subtitles = download_subtitles(video_id)
+        subtitles_container.text_area("Subtitles:", value=st.session_state.subtitles, height=400)
     except Exception as e:
         st.error(f"An error occurred: {e}")
+else:
+    # If a URL or ID had been previously provided and is still in the input box, then re-display the video and subtitles
+    if url_or_id:
+        video_id = extract_video_id(url_or_id)
+        youtube_url = f"https://www.youtube.com/watch?v={video_id}"
+        video_container.video(youtube_url)
+
+        # Check if subtitles have been fetched already and display them
+        if st.session_state.subtitles:
+            subtitles_container.text_area("Subtitles:", value=st.session_state.subtitles, height=400)
 
 if 'formatted_text' not in st.session_state:
     st.session_state.formatted_text = None
 
-if subtitles:  # If raw subtitles were fetched and displayed
+if st.session_state.subtitles:  # If raw subtitles are available in the session state
     if st.button("Punctuate Script"):
-        st.session_state.formatted_text = format_with_clarifai_api(subtitles, format_prompt)
+        st.session_state.formatted_text = format_with_clarifai_api(st.session_state.subtitles, format_prompt)
 
     # Only show the formatted text if it exists
     if st.session_state.formatted_text:
