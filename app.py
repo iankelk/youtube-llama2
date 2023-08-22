@@ -166,7 +166,7 @@ When you upload a video, YouTube will automatically create English subtitled wor
 To use this app as intended, do the following:
 
 - Upload an English language YouTube video and wait for YouTube to create the automatically generated subtitles.
-- Once YouTube has generated the subtitles, use this app. Enter either the full URL or just the video code (for example, either `https://www.youtube.com/watch?v=a4sHHnlasPQ` or `a4sHHnlasPQ`)
+- Once YouTube has generated the subtitles, use this app. Enter either the full URL or just the video code (for example, either `https://www.youtube.com/watch?v=HbuOu9zq2UE` or `HbuOu9zq2UE`)
 - The app will pull the auto-generated subtitles. Choose a model to try. The choices are `Llama-2-7b`, `Llama-2-13b`, and `Llama-2-13b`, as well as OpenAI's `GPT-3` and `GPT-4`.
 - The app will create a formatted version of the script. You may need to copy it to another document and review it for errors and corrections, as the speech-to-text from YouTube and the punctuating from the LLM may have left a few problems.
 - Click the "Generate title and description" to have the model propose a title and description for the video.
@@ -176,6 +176,16 @@ This way, the steps of formatting the script for subtitles, the video title, and
 
 # Input for YouTube URL or video ID
 url_or_id = st.text_input("Enter YouTube URL or Video ID:")
+
+# Check if 'previous_url_or_id' exists in session_state, if not initialize it
+if 'previous_url_or_id' not in st.session_state:
+    st.session_state.previous_url_or_id = None
+
+# Detect if the entered url_or_id has changed
+if st.session_state.previous_url_or_id != url_or_id:
+    st.session_state.previous_url_or_id = url_or_id
+    st.session_state.subtitles = None
+    st.session_state.formatted_text = None
 
 # Create containers for the video and subtitles to prevent their disappearance upon model change
 video_container = st.empty()
